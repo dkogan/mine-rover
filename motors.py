@@ -4,11 +4,6 @@ import sys
 import smbus
 
 
-i2c_bus     = 1
-device_addr = 0x40
-
-bus = smbus.SMBus(i2c_bus)
-
 
 # I have 16 pwm channels.
 # Each set of 4 channels corresponds to each motor.
@@ -28,55 +23,92 @@ def base_register_for_motor(i_motor):
 
 def init(bus):
     # auto-increment registers, turn on the oscillator
-    # totem-pole output
-    b.write_i2c_block_data(device_addr, 0, [0x21, 0x4])
+    #
+    # I have the configuration in Fig 15 of the PCA9685 datasheet (see the LE357
+    # datasheet): my pins are driving the cathode of an LED. So I want OEbar = 0
+    # (physical connection) and INVRT=1, OUTDRV=0 in MODE2. I set MODE2 here.
+    # Everything else (below) needs reverse polarities
+    bus.write_i2c_block_data(device_addr, 0, [0x21])
+    bus.write_i2c_block_data(device_addr, 1, [0x10])
 
-def motor_to(i_motor, pwm = None):
+def motor_to(bus, i_motor, pwm = None):
     '''Command a motor
 
-    - abs(pwm) is in [0,4095].
+    - abs(pwm) is in [0,4095]. Higher = faster.
     - sign(pwm) controls the direction.
     - pwm = 0 means "motor brake"
-    - pwm = None menas "float"'''
+    - pwm = None means "float"
+
+    See the comment in init for description about why all the polarities in this
+    function are backwards
+
+    '''
 
     register0 = base_register_for_motor(i_motor)
     if pwm is None:
-        b.write_i2c_block_data(device_addr,
+        # floating
+        bus.write_i2c_block_data(device_addr,
                                register0,
                                [
                                    # PWM
                                    0, 0, 0, 0,
 
-                                   # IN1; need "1" to float
-                                   0, 0, 0, 0xff,
+                                   # IN1; need "0" to float
+                                    0, 0, 0, 0xff,
 
-                                   # IN2; need "1" to float
-                                   0, 0, 0, 0xff
+                                   # IN2; need "0" to float
+                                    0, 0, 0, 0xff,
                                ])
-    else if pwm >= 0:
-        b.write_i2c_block_data(device_addr,
+    elif pwm == 0:
+        # braking
+        bus.write_i2c_block_data(device_addr,
+                               register0,
+                               [
+                                   # PWM
+                                   0, 0, 0, 0,
+
+                                   # IN1; need "1" to brake
+                                   0, 0xff, 0, 0,
+
+                                   # IN2; need "1" to brake
+                                   0, 0xff, 0, 0,
+                               ])
+    elif pwm >= 0:
+        pwm = 4095 - pwm # flip polarity because OEbar = 0
+        bus.write_i2c_block_data(device_addr,
                                register0,
                                [
                                    # PWM
                                    0, 0, pwm & 0xff, pwm >> 8,
 
                                    # IN1; need "0" to move "forward"
-                                   0, 0xff, 0, 0,
+                                   0, 0, 0, 0xff,
 
                                    # IN2; need "1" to move "forward"
-                                   0, 0, 0, 0xff
+                                   0, 0xff, 0, 0,
                                ])
     else:
         pwm = -pwm
-        b.write_i2c_block_data(device_addr,
+        pwm = 4095 - pwm # flip polarity because OEbar = 0
+        bus.write_i2c_block_data(device_addr,
                                register0,
                                [
                                    # PWM
                                    0, 0, pwm & 0xff, pwm >> 8,
 
                                    # IN1; need "1" to move "backward"
-                                   0, 0, 0, 0xff
+                                   0, 0xff, 0, 0,
 
                                    # IN2; need "0" to move "backward"
-                                   0, 0xff, 0, 0,
+                                   0, 0, 0, 0xff
                                ])
+
+
+i2c_bus     = 1
+device_addr = 0x40
+bus         = smbus.SMBus(i2c_bus)
+
+init(bus)
+
+import IPython
+IPython.embed()
