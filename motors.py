@@ -44,6 +44,11 @@ def motor_to(bus, i_motor, pwm = None):
 
     '''
 
+    if not (i_motor >= 0 and i_motor < 4):
+        raise Exception("i_motor out of bounds: {}".format(i_motor))
+    if not (pwm is None or abs(pwm) < 4095):
+        raise Exception("pwm out of bounds: {}".format(pwm))
+
     register0 = base_register_for_motor(i_motor)
     if pwm is None:
         # floating
@@ -110,5 +115,24 @@ bus         = smbus.SMBus(i2c_bus)
 
 init(bus)
 
-import IPython
-IPython.embed()
+for line in sys.stdin:
+
+    f = line.split()
+    if not len(f):
+        break
+
+    i_motor = int(f[0])
+    try:
+        pwm = int(f[1])
+    except:
+        pwm = None
+
+    try:
+        motor_to(bus, i_motor, pwm)
+    except Exception as e:
+        sys.stderr.write(str(e) + "\n")
+
+# done. stop all
+for i_motor in range(4):
+    motor_to(bus,i_motor)
+
