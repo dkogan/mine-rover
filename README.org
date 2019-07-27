@@ -1,0 +1,24 @@
+* Overview
+
+This is a set of tools to drive the mine rover. There's a generic single-board
+computer (a Raspberry Pi 3b+ currently). I'm talking via I2C to a PCA9685-based
+16-Channel 12-bit PWM board. The first 4 PWM channels each talk to a motor via
+an XY-160D motor controller.
+
+* Tools
+
+This repo has a few tools
+
+** Basic test
+
+For the most basic testing you can run =pwm-init.sh= and then =pwm-set.sh= to
+write arbitrary values to the motor controllers
+
+** Full system
+
+=motors.py= is a higher-level interface. Run the program, then each line of text
+on STDIN is a command. Each command is one or two ascii numbers. The first
+number is in [0,3]: the motor. The second number is in [-4095,4095]: the
+velocity. 0 means "power hold". If the second number is missing, we release the
+motor. If an empty line is given, we exit.
+
