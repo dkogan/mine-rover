@@ -16,9 +16,5 @@ write arbitrary values to the motor controllers
 
 ** Full system
 
-=motors.py= is a higher-level interface. Run the program, then each line of text
-on STDIN is a command. Each command is one or two ascii numbers. The first
-number is in [0,3]: the motor. The second number is in [-4095,4095]: the
-velocity. 0 means "power hold". If the second number is missing, we release the
-motor. If an empty line is given, we exit.
-
+=motors.py= reads commands from STDIN, and commands the motors. See its
+documentation for details.
