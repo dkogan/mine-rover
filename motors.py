@@ -2,6 +2,9 @@
 
 r'''Reads commands on STDIN, and commands the motors
 
+If --maxcmdinterval T is given on the commandline, then we send a motor-stop
+command if T seconds elapses before receiving a command
+
 Each line of text on STDIN is a command. Each command is a list of
 whitespace-separated integers. The number of integers defines a different type
 of command.
@@ -34,11 +37,21 @@ of command.
   3. Value in [-4095,4095]: the velocity of motor 3
 
   Velocity 0 means "power hold".
+
 '''
 
 
 import sys
 import smbus
+import select
+
+if len(sys.argv) == 1:
+    input_timeout = None
+elif len(sys.argv) == 3 and sys.argv[1] == '--maxcmdinterval':
+    input_timeout = float(sys.argv[2])
+else:
+    sys.stderr.write(f"Usage: {sys.argv[0]} [--maxcmdinterval T]\n")
+    sys.exit(1)
 
 
 # I have 16 pwm channels.
@@ -151,9 +164,17 @@ bus         = smbus.SMBus(i2c_bus)
 
 init(bus)
 
-for line in sys.stdin:
+while True:
 
-    f = line.split()
+    read_list = select.select( [sys.stdin.fileno()], [], [], input_timeout)[0]
+
+    if len(read_list) == 0:
+        # nothing to read. The timeout expired!
+        f = []
+    else:
+        line = sys.stdin.readline()
+        f = line.split()
+
     if len(f) == 0:
         for i_motor in range(4):
             motor_to(bus,i_motor)
@@ -182,7 +203,3 @@ for line in sys.stdin:
 
     sys.stderr.write("I only know about 1-value, 2-value and 4-value commands. Got '{}'\n".format(line))
     continue
-
-# done. stop all
-    motor_to(bus,i_motor)
-
