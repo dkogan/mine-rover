@@ -1,8 +1,44 @@
 #!/usr/bin/python3
 
+r'''Reads commands on STDIN, and commands the motors
+
+Each line of text on STDIN is a command. Each command is a list of
+whitespace-separated integers. The number of integers defines a different type
+of command.
+
+0 integers:
+
+  If an empty line is received, we release all the motors
+
+
+1 integer:
+
+  0. Value in [0,3]: the motor index
+
+  We release the requested motor
+
+
+2 integers:
+
+  0. Value in [0,3]: the motor index
+  1. Value in [-4095,4095]: the velocity.
+
+  Velocity 0 means "power hold".
+
+
+4 integers:
+
+  0. Value in [-4095,4095]: the velocity of motor 0
+  1. Value in [-4095,4095]: the velocity of motor 1
+  2. Value in [-4095,4095]: the velocity of motor 2
+  3. Value in [-4095,4095]: the velocity of motor 3
+
+  Velocity 0 means "power hold".
+'''
+
+
 import sys
 import smbus
-
 
 
 # I have 16 pwm channels.
@@ -118,21 +154,35 @@ init(bus)
 for line in sys.stdin:
 
     f = line.split()
-    if not len(f):
-        break
+    if len(f) == 0:
+        for i_motor in range(4):
+            motor_to(bus,i_motor)
+        continue
 
-    i_motor = int(f[0])
-    try:
-        pwm = int(f[1])
-    except:
-        pwm = None
+    if len(f) == 1:
+        i_motor = int(f[0])
+        try:
+            motor_to(bus, i_motor, None)
+        except Exception as e:
+            sys.stderr.write(str(e) + "\n")
+        continue
 
-    try:
-        motor_to(bus, i_motor, pwm)
-    except Exception as e:
-        sys.stderr.write(str(e) + "\n")
+    if len(f) == 2:
+        i_motor = int(f[0])
+        try:
+            motor_to(bus, i_motor, int(f[1]))
+        except Exception as e:
+            sys.stderr.write(str(e) + "\n")
+        continue
+
+    if len(f) == 4:
+        for i_motor in range(4):
+            motor_to(bus, i_motor, int(f[i_motor]))
+        continue
+
+    sys.stderr.write("I only know about 1-value, 2-value and 4-value commands. Got '{}'\n".format(line))
+    continue
 
 # done. stop all
-for i_motor in range(4):
     motor_to(bus,i_motor)
 
