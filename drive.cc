@@ -20,7 +20,7 @@
 #define PORT            3322
 #define COMM_PERIOD_US  1000000
 #define UPDOWN_DELTA    100
-#define UPDOWN_MIN      0
+#define UPDOWN_MIN      -4095
 #define UPDOWN_MAX      4095
 #define LEFTRIGHT_DELTA 5
 #define LEFTRIGHT_MIN   -90
@@ -112,6 +112,13 @@ static void* send_current_command_thread(void* cookie)
             {
                 motor_values[0] = motor_values[2] = outer_speed;
                 motor_values[1] = motor_values[3] = inner_speed;
+            }
+            if(forward < 0)
+            {
+                motor_values[0] = -motor_values[0];
+                motor_values[1] = -motor_values[1];
+                motor_values[2] = -motor_values[2];
+                motor_values[3] = -motor_values[3];
             }
             len = snprintf(buf, sizeof(buf),
                            "%d %d %d %d\n",
