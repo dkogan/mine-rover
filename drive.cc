@@ -85,7 +85,13 @@ static void* send_current_command_thread(void* cookie)
 
         Fl::lock();
         if(done) return NULL;
-        if( widget_go->value() )
+
+        bool   go      = widget_go     ->value();
+        double forward = widget_forward->value();
+        double turn    = widget_turn   ->value();
+        Fl::unlock();
+
+        if( go )
         {
             // As I turn, I keep the outer wheels turning at the same speed, and
             // slow down the inner wheels, linearly.
@@ -95,23 +101,27 @@ static void* send_current_command_thread(void* cookie)
             //    1 0
             //    | |
             //    3 2
-            double outer_speed = fabs(widget_forward->value());
-            double inner_speed = outer_speed * (1.0 - 2.0*fabs(widget_turn->value()) / LEFTRIGHT_MAX);
-            motor_values[0] = widget_turn   ->value();
-            motor_values[1] = widget_forward->value();
-            if( widget_turn->value() > 0 )
-                motor_values[0] = motor_values[2] = outer_speed;
-            else
+            double outer_speed = fabs(forward);
+            double inner_speed = outer_speed * (1.0 - 2.0*fabs(turn) / LEFTRIGHT_MAX);
+            if( turn > 0 )
+            {
+                motor_values[0] = motor_values[2] = inner_speed;
                 motor_values[1] = motor_values[3] = outer_speed;
+            }
+            else
+            {
+                motor_values[0] = motor_values[2] = outer_speed;
+                motor_values[1] = motor_values[3] = inner_speed;
+            }
+            len = snprintf(buf, sizeof(buf),
+                           "%d %d %d %d\n",
+                           motor_values[0],
+                           motor_values[1],
+                           motor_values[2],
+                           motor_values[3]);
         }
-        Fl::unlock();
-
-        len = snprintf(buf, sizeof(buf),
-                       "%d %d %d %d\n",
-                       motor_values[0],
-                       motor_values[1],
-                       motor_values[2],
-                       motor_values[3]);
+        else
+            len = snprintf(buf, sizeof(buf), "\n");
 
         if( len >= (int)sizeof(buf) )
         {
@@ -218,6 +228,7 @@ int main(int argc, char* argv[])
     widget_go = new Fl_Toggle_Button(0, WIDGET_TURN_H,
                                      WIDGET_GO_W, WIDGET_GO_H,
                                      "Go!");
+    widget_go->selection_color(FL_RED);
 
     //window.resizable(window);
     window.end();
