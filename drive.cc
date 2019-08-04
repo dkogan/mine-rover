@@ -16,9 +16,9 @@
 #include <FL/Fl_Dial.H>
 #include <FL/Fl_Toggle_Button.H>
 
-#define HOST            "127.0.0.1"
+#define HOST            "192.168.3.2"
 #define PORT            3322
-#define COMM_PERIOD_US  1000000
+#define COMM_PERIOD_US  100000
 #define UPDOWN_DELTA    100
 #define UPDOWN_MIN      -4095
 #define UPDOWN_MAX      4095
