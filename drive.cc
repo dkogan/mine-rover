@@ -166,6 +166,15 @@ public:
                 return 1;
             }
 
+            if(Fl::event_key() == FL_BackSpace)
+            {
+                // reset everything to the defaults
+                widget_go     ->value(0);
+                widget_forward->value(0);
+                widget_turn   ->value(0);
+                return 1;
+            }
+
             if(Fl::event_key() == FL_Up)
             {
                 double x = widget_forward->value();
