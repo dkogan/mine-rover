@@ -5,6 +5,8 @@ computer (a Raspberry Pi 3b+ currently). I'm talking via I2C to a PCA9685-based
 16-Channel 12-bit PWM board. The first 4 PWM channels each talk to a motor via
 an XY-160D motor controller.
 
+Various datasheets are in docs/
+
 * Tools
 
 This repo has a few tools
@@ -12,9 +14,61 @@ This repo has a few tools
 ** Basic test
 
 For the most basic testing you can run =pwm-init.sh= and then =pwm-set.sh= to
-write arbitrary values to the motor controllers
+write arbitrary values to the motor controllers. First run =pwm-init.sh= to set
+up the port, and =pwm-set.sh= to write out the i2c values. This is needed only
+for testing.
 
 ** Full system
+When running the full system we run =motors-from-udp= on the board talking to
+the motors (to read UDP commands and to command the motors). And we run
+=motors-gui-to-udp= on a GUI-enabled computer talking to the board via the
+network (to run a GUI to send commands to the network). The IPs and ports are
+hard-coded.
 
-=motors.py= reads commands from STDIN, and commands the motors. See its
-documentation for details.
+*** =motors.py=
+=motors.py= reads commands from STDIN, and commands the motors.
+
+If --maxcmdinterval T is given on the commandline, then we send a motor-stop
+command if T seconds elapses before receiving a command
+
+Each line of text on STDIN is a command. Each command is a list of
+whitespace-separated integers. The number of integers defines a different type
+of command.
+
+0 integers:
+
+  If an empty line is received, we release all the motors
+
+
+1 integer:
+
+  0. Value in [0,3]: the motor index
+
+  We release the requested motor
+
+
+2 integers:
+
+  0. Value in [0,3]: the motor index
+  1. Value in [-4095,4095]: the velocity.
+
+  Velocity 0 means "power hold".
+
+
+4 integers:
+
+  0. Value in [-4095,4095]: the velocity of motor 0
+  1. Value in [-4095,4095]: the velocity of motor 1
+  2. Value in [-4095,4095]: the velocity of motor 2
+  3. Value in [-4095,4095]: the velocity of motor 3
+
+  Velocity 0 means "power hold".
+
+*** =motors-from-udp=
+
+A tiny script to read a UDP socket (via =socat=), and to connect it to
+=motors.py=
+
+*** =motors-gui-to-udp=
+
+A fltk GUI application to send motor commands to a (hard-coded) UDP socket
