@@ -29,7 +29,8 @@ hard-coded.
 =motors.py= reads commands from STDIN, and commands the motors.
 
 If --maxcmdinterval T is given on the commandline, then we send a motor-stop
-command if T seconds elapses before receiving a command
+command if T seconds elapses before receiving a command. This is intended as a
+safety stop in case the network connection goes down.
 
 Each line of text on STDIN is a command. Each command is a list of
 whitespace-separated integers. The number of integers defines a different type
@@ -71,4 +72,22 @@ A tiny script to read a UDP socket (via =socat=), and to connect it to
 
 *** =motors-gui-to-udp=
 
-A fltk GUI application to send motor commands to a (hard-coded) UDP socket
+A fltk GUI application to send motor commands to a (hard-coded) UDP socket. This
+application is meant to be controlled via a keyboard. Keys:
+
+- Up/down: throttle. How fast the motors are spinning. This can be commanded
+  positive to drive forwards or negative to drive backwards. A value of 0 means
+  "stop"
+
+- Left/right: turn. By default we drive straight: the left and right wheels
+  rotate evenly. If we want to turn, we rotate the left wheels faster or slower
+  than the right wheels. This imbalance is controlled with the left/right
+  buttons
+
+- Space: go. At startup, the motors aren't engaged. We can plan a motion with
+  left/right/up/down, but the motors will not move until enabled by pressing
+  space. Similarly, while the motors are engaged, pressing space will stop them,
+  regardless of what they're doing
+
+- Backspace: reset. At any point this will stop the motors, and reset the
+  steering to "straight" and the throttle to 0
