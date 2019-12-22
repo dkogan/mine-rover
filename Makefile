@@ -8,10 +8,10 @@ CXXFLAGS += -Wno-unused-parameter -Wno-unused-variable
 
 LDLIBS += -lfltk -lpthread -pthread
 
-all: drive
+all: motors-gui-to-udp
 .PHONY: all
 
-drive: drive.o
+motors-gui-to-udp: motors-gui-to-udp.o
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 -include *.d
