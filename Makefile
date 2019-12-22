@@ -14,4 +14,8 @@ all: motors-gui-to-udp
 motors-gui-to-udp: motors-gui-to-udp.o
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
+clean:
+	rm *.o *.d motors-gui-to-udp
+.PHONY: clean
+
 -include *.d
