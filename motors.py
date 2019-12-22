@@ -40,10 +40,7 @@ of command.
 
 '''
 
-
 import sys
-import smbus
-import select
 
 if len(sys.argv) == 1:
     input_timeout = None
@@ -51,7 +48,13 @@ elif len(sys.argv) == 3 and sys.argv[1] == '--maxcmdinterval':
     input_timeout = float(sys.argv[2])
 else:
     sys.stderr.write(f"Usage: {sys.argv[0]} [--maxcmdinterval T]\n")
+    sys.stderr.write("\n")
+    sys.stderr.write(__doc__)
     sys.exit(1)
+
+
+import smbus
+import select
 
 
 # I have 16 pwm channels.
