@@ -164,7 +164,7 @@ public:
     {
         if(event == FL_KEYDOWN)
         {
-            if(Fl::event_key() == ' ')
+            if(Fl::event_key(' '))
             {
                 if( widget_go->value() )
                     widget_go->value(0);
@@ -173,7 +173,7 @@ public:
                 return 1;
             }
 
-            if(Fl::event_key() == FL_BackSpace)
+            if(Fl::event_key(FL_BackSpace))
             {
                 // reset everything to the defaults
                 widget_go     ->value(0);
@@ -182,28 +182,28 @@ public:
                 return 1;
             }
 
-            if(Fl::event_key() == FL_Up)
+            if(Fl::event_key(FL_Up))
             {
                 double x = widget_forward->value();
                 x = fmin(UPDOWN_MAX, x + UPDOWN_DELTA);
                 widget_forward->value(x);
                 return 1;
             }
-            if(Fl::event_key() == FL_Down)
+            if(Fl::event_key(FL_Down))
             {
                 double x = widget_forward->value();
                 x = fmax(UPDOWN_MIN, x - UPDOWN_DELTA);
                 widget_forward->value(x);
                 return 1;
             }
-            if(Fl::event_key() == FL_Left)
+            if(Fl::event_key(FL_Left))
             {
                 double x = widget_turn->value();
                 x = fmax(LEFTRIGHT_MIN, x - LEFTRIGHT_DELTA);
                 widget_turn->value(x);
                 return 1;
             }
-            if(Fl::event_key() == FL_Right)
+            if(Fl::event_key(FL_Right))
             {
                 double x = widget_turn->value();
                 x = fmin(LEFTRIGHT_MAX, x + LEFTRIGHT_DELTA);
